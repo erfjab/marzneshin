@@ -14,7 +14,6 @@ class Morebot:
     _timeout = 3
     _failed_reports = defaultdict(int)
 
-
     @classmethod
     def report_admin_usage(
         cls, db: Session, users_usage: List[Dict[str, Any]]
@@ -45,7 +44,9 @@ class Morebot:
 
         try:
             response = requests.post(
-                f"{cls._base_url}/usages", json=report_data, timeout=cls._timeout
+                f"{cls._base_url}/usages",
+                json=report_data,
+                timeout=cls._timeout,
             )
             response.raise_for_status()
             logger.info("Admin usage report successfully.")

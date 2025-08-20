@@ -516,7 +516,7 @@ def get_total_usages(
         timestamp = created_at.replace(tzinfo=timezone.utc).timestamp()
         usages[timestamp] += int(used_traffic)
 
-    result = TrafficUsageSeries(usages=[], total=0)
+    result = TrafficUsageSeries(usages=[], total=0, lifetime_total=0)
     current = start.astimezone(timezone.utc).replace(
         minute=0, second=0, microsecond=0
     )
@@ -526,6 +526,18 @@ def get_total_usages(
         result.usages.append((int(current.timestamp()), usage))
         result.total += usage
         current += timedelta(hours=1)
+
+    # Compute lifetime_total up to the provided end time
+    lifetime_cond = NodeUserUsage.created_at <= end
+    lifetime_query = db.query(func.sum(NodeUserUsage.used_traffic))
+    if not admin.is_sudo:
+        lifetime_query = (
+            lifetime_query.join(User, NodeUserUsage.user_id == User.id)
+            .join(Admin, User.admin_id == Admin.id)
+            .filter(Admin.id == admin.id)
+        )
+    lifetime_total_value = lifetime_query.filter(lifetime_cond).scalar() or 0
+    result.lifetime_total = int(lifetime_total_value)
 
     return result
 

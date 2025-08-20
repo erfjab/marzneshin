@@ -33,7 +33,8 @@ export const TotalTrafficsWidget: FC = () => {
     const { start, end } = useFromNowInterval(timeRange as ChartDateInterval);
     const { data, isPending } = useTotalTrafficQuery({ start, end })
     const chartData = useTransformDateUsageData(data.usages);
-    const [totalAmount, totalMetric] = formatByte(data.total);
+    const [rangeAmount, rangeMetric] = formatByte(data.total);
+    const [lifetimeAmount, lifetimeMetric] = formatByte(data.lifetime_total ?? 0);
 
     return (
         <Awaiting
@@ -46,13 +47,19 @@ export const TotalTrafficsWidget: FC = () => {
                     }
                     description={t("page.home.total-traffics.desc")}
                     options={
-                        <div className="vstack justify-end w-full">
-                            <span className="text-lg leading-none sm:text-2xl w-full">
-                                {totalAmount} {totalMetric}
-                            </span>
-                            <span className="text-sm flex justify-end  text-muted-foreground w-full">
-                                Total
-                            </span>
+                        <div className="grid grid-cols-2 gap-4 w-full justify-end">
+                            <div className="vstack justify-end items-end">
+                                <span className="text-lg leading-none sm:text-2xl">
+                                    {rangeAmount} {rangeMetric}
+                                </span>
+                                <span className="text-xs text-muted-foreground">All</span>
+                            </div>
+                            <div className="vstack justify-end items-end">
+                                <span className="text-lg leading-none sm:text-2xl">
+                                    {lifetimeAmount} {lifetimeMetric}
+                                </span>
+                                <span className="text-xs text-muted-foreground">Total</span>
+                            </div>
                         </div>
                     }
                     footer={
