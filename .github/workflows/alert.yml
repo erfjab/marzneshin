@@ -21,16 +21,11 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           REPO_NAME="${{ github.repository }}"
           
-          MESSAGE="🔄 *New Pull Request*
 
-📝 *Title:* ${PR_TITLE}
-👤 *Author:* ${PR_AUTHOR}
-🔢 *PR #${PR_NUMBER}*
-🏷️ *Repo:* ${REPO_NAME}
-
-🔗 [View Pull Request](${PR_URL})"
+          MESSAGE="🔄 *New Pull Request*\\n📝 *Title:* ${PR_TITLE}\\n👤 *Author:* ${PR_AUTHOR}\\n🔢 *PR #${PR_NUMBER}*\\n🏷️ *Repo:* ${REPO_NAME}\\n🔗 [View Pull Request](${PR_URL})"
 
           ESCAPED_MESSAGE=$(echo "${MESSAGE}" | sed 's/"/\\"/g' | sed "s/'/\\\'/g")
+          
 
           response=$(curl -s -w "%{http_code}" -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             -H "Content-Type: application/json" \
@@ -40,6 +35,7 @@ jobs:
               \"parse_mode\": \"Markdown\",
               \"disable_web_page_preview\": false
             }")
+          
 
           http_code=${response: -3}
           if [ "$http_code" -ne 200 ]; then
