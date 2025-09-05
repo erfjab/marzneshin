@@ -7,12 +7,11 @@ on:
 jobs:
   notify-telegram:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Send Telegram notification
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_TOPIC_ID }}
         run: |
 
           PR_TITLE="${{ github.event.pull_request.title }}"
@@ -30,8 +29,9 @@ jobs:
           response=$(curl -s -w "%{http_code}" -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             -H "Content-Type: application/json" \
             -d "{
-              \"chat_id\": \"${CHAT_ID}\",
+              \"chat_id\": \"-1003007917103\",
               \"text\": \"${ESCAPED_MESSAGE}\",
+              \"message_thread_id\": \"3\",
               \"parse_mode\": \"Markdown\",
               \"disable_web_page_preview\": false
             }")
