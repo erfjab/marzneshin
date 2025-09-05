@@ -36,7 +36,6 @@ jobs:
               \"disable_web_page_preview\": false
             }")
           
-
           http_code=${response: -3}
           if [ "$http_code" -ne 200 ]; then
             echo "Error: Failed to send Telegram notification (HTTP $http_code)"
