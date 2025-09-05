@@ -2,6 +2,8 @@ name: PR Telegram Notification
 
 on:
   pull_request:
+    branches:
+      - 'master'
     types: [opened, reopened]
 
 jobs:
