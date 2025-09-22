@@ -1,6 +1,6 @@
 import requests
 import logging
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from collections import defaultdict
 from sqlalchemy.orm import Session
 from app.db.models import Admin, User
@@ -14,6 +14,21 @@ class Morebot:
     _timeout = 3
     _failed_reports = defaultdict(int)
 
+    @classmethod
+    def get_users_limit(cls, username: str) -> Optional[int]:
+        try:
+            response = requests.get(
+                url=f"{cls._base_url}/{username}/users_limit",
+                timeout=cls._timeout,
+            )
+            logger.info(
+                f"Morebot response: {response.status_code}, {response.text}"
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("users_limit", 0)
+        except requests.RequestException:
+            return 0
 
     @classmethod
     def report_admin_usage(
@@ -45,7 +60,9 @@ class Morebot:
 
         try:
             response = requests.post(
-                f"{cls._base_url}/usages", json=report_data, timeout=cls._timeout
+                f"{cls._base_url}/usages",
+                json=report_data,
+                timeout=cls._timeout,
             )
             response.raise_for_status()
             logger.info("Admin usage report successfully.")

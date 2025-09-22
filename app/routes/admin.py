@@ -22,6 +22,7 @@ from app.models.admin import (
 )
 from app.models.service import ServiceResponse
 from app.models.user import UserResponse
+from app.morebot import Morebot
 from app.utils.auth import create_admin_token
 
 router = APIRouter(tags=["Admin"], prefix="/admins")
@@ -189,7 +190,15 @@ async def enable_users(username: str, db: DBDep, admin: SudoAdminDep):
             detail="You're not allowed.",
         )
 
-    for user in crud.get_users(db, admin=db_admin, enabled=False):
+    users_limit = Morebot.get_users_limit(admin.username)
+    for user in crud.get_users(
+        db,
+        admin=db_admin,
+        limit=users_limit if users_limit else None,
+        enabled=None if users_limit else False,
+    ):
+        if users_limit and user.enabled:
+            continue
         user.enabled = True
         if user.is_active:
             marznode.operations.update_user(user)
@@ -216,11 +225,32 @@ def remove_admin(username: str, db: DBDep, admin: SudoAdminDep):
 
 
 @router.post("/{username}/sync")
-async def sync_configs(username: str, db: DBDep, admin: SudoAdminDep):
+async def sync_configs(
+    username: str, data: dict, db: DBDep, admin: SudoAdminDep
+):
     """Sync user configs with admin's services"""
     db_admin = crud.get_admin(db, username)
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
+
+    users_limit = data.get("users_limit")
+    users = crud.get_users(
+        db, admin=db_admin, is_active=True, offset=users_limit
+    )
+    if users:
+        try:
+            for user in users:
+                if user.activated:
+                    marznode.operations.update_user(user, remove=True)
+                user.enabled = False
+                user.activated = False
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Failed to disable users before sync. Aborting.",
+            )
 
     users = crud.get_users(db, admin=db_admin)
     result = {"total": len(users), "success": 0, "failed": 0}
