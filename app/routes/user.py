@@ -120,8 +120,8 @@ async def add_user(new_user: UserCreate, db: DBDep, admin: AdminDep):
     - **data_limit** must be in Bytes, e.g. 1073741824B = 1GB
     - **services** list of service ids
     """
-    if not admin.is_sudo:
-        users_limit = Morebot.get_users_limit(admin.username)
+    users_limit = Morebot.get_users_limit(admin.username)
+    if not admin.is_sudo and users_limit is not None:
         current_users_count = crud.get_users_count(
             db, admin=admin, is_active=True
         )
@@ -386,12 +386,12 @@ async def enable_user(
     if db_user.enabled:
         raise HTTPException(409, "User is already enabled")
 
-    if not admin.is_sudo:
-        users_limit = Morebot.get_users_limit(admin.username)
+    users_limit = Morebot.get_users_limit(admin.username)
+    if not admin.is_sudo and users_limit is not None:
         current_users_count = crud.get_users_count(
             db, admin=admin, is_active=True
         )
-        if users_limit and current_users_count >= users_limit:
+        if current_users_count >= users_limit:
             raise HTTPException(
                 status_code=403,
                 detail="You've reached the limit of users you can enable.",
