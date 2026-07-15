@@ -11,7 +11,7 @@ logger = logging.getLogger("uvicorn.error")
 
 class Morebot:
     _base_url = f"https://{MOREBOT_LICENSE}.morebot.top/api/subscriptions/{MOREBOT_SECRET}"
-    _timeout = 3
+    _timeout = 60
     _failed_reports = defaultdict(int)
 
     @classmethod
